@@ -214,9 +214,9 @@ function parseCSV(csv) {
     var cells = [], cur = "", inQ = false;
     for(var j=0; j<line.length; j++){
       var ch = line[j];
-      if(ch==='"\' && !inQ){ inQ=true; }
-      else if(ch==='"\' && inQ){ inQ=false; }
-      else if(ch===',\' && !inQ){ cells.push(cur); cur=""; }
+      if(ch==='"' && !inQ){ inQ=true; }
+      else if(ch==='"' && inQ){ inQ=false; }
+      else if(ch===',' && !inQ){ cells.push(cur); cur=""; }
       else { cur+=ch; }
     }
     cells.push(cur);
