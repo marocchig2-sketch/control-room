@@ -140,84 +140,60 @@
 </footer>
 
 <script>
-// ============================================================
-// CONFIGURAZIONE
-// ============================================================
-var SHEET_ID = "1uGZi8H46tkBrcyqOX7vIUj5-mU61e7IVP2UjOrJCK-w";
-var SHEET_NAME = "DAY";
-
-// Righe esatte nel foglio DAY
+var SHEET_ID = '1uGZi8H46tkBrcyqOX7vIUj5-mU61e7IVP2UjOrJCK-w';
+var SHEET_NAME = 'DAY';
 var ROWS = {
-  CLI:3, CLI_VAR:4, CLI_CANC:5,
-  LHL:6, LHL_VAR:7, LHL_NOSHOW:8, LHL_EXTRA:9,
-  AMZ:10, AMZ_NOSHOW:11, AMZ_CANC:12, AMZ_EXTRA:13,
-  RETE:14, RETE_CANC:15,
-  SENGI:16, SENGI_VAR:17, SENGI_CANC:18,
+  CLI:3,CLI_VAR:4,CLI_CANC:5,
+  LHL:6,LHL_VAR:7,LHL_NOSHOW:8,LHL_EXTRA:9,
+  AMZ:10,AMZ_NOSHOW:11,AMZ_CANC:12,AMZ_EXTRA:13,
+  RETE:14,RETE_CANC:15,
+  SENGI:16,SENGI_VAR:17,SENGI_CANC:18,
   AM_RITARDI:19,
-  LINEE:28, VARIAZIONI:29, CANCELLAZIONI:30,
-  EXTRA:31, NOSHOW:32, GIACENZA:33,
-  RIT_ARR:45, RIT_PERC:58, GUASTI:62
+  LINEE:28,VARIAZIONI:29,CANCELLAZIONI:30,
+  EXTRA:31,NOSHOW:32,GIACENZA:33,
+  RIT_ARR:45,RIT_PERC:58,GUASTI:62
 };
 
-// ============================================================
-// CLOCK
-// ============================================================
-function tick() {
-  var n=new Date(), h=n.getHours();
-  document.getElementById("clock").textContent=n.toLocaleTimeString("it-IT");
-  document.getElementById("cdate").textContent=n.toLocaleDateString("it-IT",{weekday:"short",day:"2-digit",month:"short",year:"numeric"});
-  var fn=document.getElementById("fnow"); if(fn) fn.textContent=n.toLocaleTimeString("it-IT");
-  var tur=document.getElementById("turno");
-  if(tur) tur.textContent=h>=6&&h<14?"Mattina 06:00-14:00":h>=14&&h<22?"Pomeriggio 14:00-22:00":"Notte 22:00-06:00";
+function tick(){
+  var n=new Date(),h=n.getHours();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('it-IT');
+  document.getElementById('cdate').textContent=n.toLocaleDateString('it-IT',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  var fn=document.getElementById('fnow'); if(fn) fn.textContent=n.toLocaleTimeString('it-IT');
+  var tur=document.getElementById('turno');
+  if(tur) tur.textContent=h>=6&&h<14?'Mattina 06:00-14:00':h>=14&&h<22?'Pomeriggio 14:00-22:00':'Notte 22:00-06:00';
 }
 tick(); setInterval(tick,1000);
 
-// ============================================================
-// LETTURA SHEET tramite API pubblica
-// ============================================================
-function loadData() {
-  document.getElementById("loading").style.display="flex";
-  document.getElementById("dashboard").style.display="none";
-
-  // Export CSV pubblico — funziona senza API key e senza CORS issues
-  var GID = ""; // GID del foglio DAY (da URL dello sheet)
-  var url = "https://docs.google.com/spreadsheets/d/"
-    + SHEET_ID
-    + "/gviz/tq?tqx=out:csv&sheet="
-    + encodeURIComponent(SHEET_NAME)
-    + "&range=A1:R100";
-
+function loadData(){
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(SHEET_NAME)+'&range=A1:R100';
   fetch(url)
     .then(function(r){
-      if(!r.ok) throw new Error("HTTP "+r.status);
+      if(!r.ok) throw new Error('HTTP '+r.status);
       return r.text();
     })
     .then(function(csv){
-      var rows = parseCSV(csv);
-      var D = parseSheet(rows);
+      var rows=parseCSV(csv);
+      var D=parseSheet(rows);
       renderDashboard(D);
-      document.getElementById("loading").style.display="none";
-      document.getElementById("dashboard").style.display="block";
-      document.getElementById("last-upd").textContent=new Date().toLocaleTimeString("it-IT");
+      document.getElementById('loading').style.display='none';
+      document.getElementById('dashboard').style.display='block';
+      document.getElementById('last-upd').textContent=new Date().toLocaleTimeString('it-IT');
     })
-    .catch(function(e){ showError("Errore caricamento: "+e.message+". Assicurati che il file sia aperto da un server web."); });
+    .catch(function(e){ showError('Errore: '+e.message); });
 }
 
-// ============================================================
-// PARSING CSV
-// ============================================================
-function parseCSV(csv) {
-  var lines = csv.split("\n");
-  var rows = [];
-  for(var i=0; i<lines.length; i++){
-    var line = lines[i];
-    var cells = [], cur = "", inQ = false;
-    for(var j=0; j<line.length; j++){
-      var ch = line[j];
-      if(ch==='"' && !inQ){ inQ=true; }
-      else if(ch==='"' && inQ){ inQ=false; }
-      else if(ch===',' && !inQ){ cells.push(cur); cur=""; }
-      else { cur+=ch; }
+function parseCSV(csv){
+  var lines=csv.split('\n'), rows=[];
+  for(var i=0;i<lines.length;i++){
+    var line=lines[i], cells=[], cur='', inQ=false;
+    for(var j=0;j<line.length;j++){
+      var ch=line[j];
+      if(ch==='"'&&!inQ){inQ=true;}
+      else if(ch==='"'&&inQ){inQ=false;}
+      else if(ch===','&&!inQ){cells.push(cur);cur='';}
+      else{cur+=ch;}
     }
     cells.push(cur);
     rows.push(cells);
@@ -225,145 +201,135 @@ function parseCSV(csv) {
   return rows;
 }
 
-// ============================================================
-// PARSING DATI DAL FOGLIO
-// ============================================================
-function parseSheet(rows) {
-  // rows[i] = array di celle, indice 0-based
-  // Colonna A=0, B=1, C=2...H=7, Q=16
-
-  function getRow(rowNum) {
-    var r = rows[rowNum-1] || [];
-    var vals = [];
-    for(var c=2; c<=7; c++){
-      var v = r[c];
-      var n = (v===undefined||v===null||v==="") ? 0 : parseFloat(String(v).replace(",",".")) || 0;
+function parseSheet(rows){
+  function getRow(rowNum){
+    var r=rows[rowNum-1]||[], vals=[];
+    for(var c=2;c<=7;c++){
+      var v=r[c];
+      var n=(v===undefined||v===null||v==='')?0:parseFloat(String(v).replace(',','.'))||0;
       vals.push(n);
     }
-    var wkRaw = r[16];
-    var wk = (wkRaw===undefined||wkRaw===null||wkRaw==="") ? 0 : parseFloat(String(wkRaw).replace(",",".")) || 0;
-    return {vals:vals, wk:wk};
+    var wkRaw=r[16];
+    var wk=(wkRaw===undefined||wkRaw===null||wkRaw==='')?0:parseFloat(String(wkRaw).replace(',','.'))||0;
+    return {vals:vals,wk:wk};
   }
+  function t(n){return getRow(n).vals[0]||0;}
+  function w(n){return getRow(n).wk||0;}
+  function s(n){return getRow(n).vals;}
 
-  function todayR(n){ return getRow(n).vals[0]||0; }
-  function wkR(n){ return getRow(n).wk||0; }
-  function sparkR(n){ return getRow(n).vals; }
-
-  // Date dalla riga 2 (index 1), colonne C-H (indici 2-7)
-  var dateRow = rows[1] || [];
-  var dates = [];
-  for(var c=2; c<=7; c++){
-    var v = dateRow[c] || "";
-    // Se e` un numero seriale Excel, converto
-    if(!isNaN(v) && v !== "") {
-      var d = new Date((parseFloat(v)-25569)*86400*1000);
-      v = (d.getDate()<10?"0":"")+d.getDate()+"/"+(d.getMonth()<9?"0":"")+(d.getMonth()+1);
+  var dateRow=rows[1]||[], dates=[];
+  for(var c=2;c<=7;c++){
+    var v=dateRow[c]||'';
+    if(!isNaN(v)&&v!==''){
+      var d=new Date((parseFloat(v)-25569)*86400*1000);
+      v=(d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()<9?'0':'')+(d.getMonth()+1);
     }
     dates.push(String(v).substring(0,5));
   }
 
-  var now = new Date();
-  var aggiornamento = (now.getDate()<10?"0":"")+now.getDate()+"/"
-    +(now.getMonth()<9?"0":"")+(now.getMonth()+1)+"/"
-    +now.getFullYear()+" "+now.toLocaleTimeString("it-IT");
+  var now=new Date();
+  var agg=(now.getDate()<10?'0':'')+now.getDate()+'/'+(now.getMonth()<9?'0':'')+(now.getMonth()+1)+'/'+now.getFullYear()+' '+now.toLocaleTimeString('it-IT');
 
   return {
-    aggiornamento: aggiornamento,
-    date: dates,
-    linee:         {today:todayR(ROWS.LINEE),        wk:wkR(ROWS.LINEE),        spark:sparkR(ROWS.LINEE)},
-    cancellazioni: {today:todayR(ROWS.CANCELLAZIONI), wk:wkR(ROWS.CANCELLAZIONI), spark:sparkR(ROWS.CANCELLAZIONI)},
-    variazioni:    {today:todayR(ROWS.VARIAZIONI),    wk:wkR(ROWS.VARIAZIONI),    spark:sparkR(ROWS.VARIAZIONI)},
-    extra:         {today:todayR(ROWS.EXTRA),         wk:wkR(ROWS.EXTRA),         spark:sparkR(ROWS.EXTRA)},
-    amRitardi:     {today:todayR(ROWS.AM_RITARDI),    wk:wkR(ROWS.AM_RITARDI),    spark:sparkR(ROWS.AM_RITARDI)},
-    guasti:        {today:todayR(ROWS.GUASTI),        wk:wkR(ROWS.GUASTI),        spark:sparkR(ROWS.GUASTI)},
-    giacenza:      {today:todayR(ROWS.GIACENZA),      wk:wkR(ROWS.GIACENZA),      spark:sparkR(ROWS.GIACENZA)},
-    noshow:        {today:todayR(ROWS.NOSHOW),        wk:wkR(ROWS.NOSHOW),        spark:sparkR(ROWS.NOSHOW)},
-    ritArrGiust:   {today:todayR(ROWS.RIT_ARR),       wk:wkR(ROWS.RIT_ARR),       spark:sparkR(ROWS.RIT_ARR)},
-    ritPercGiust:  {today:todayR(ROWS.RIT_PERC),      wk:wkR(ROWS.RIT_PERC),      spark:sparkR(ROWS.RIT_PERC)},
-    cli:      {today:todayR(ROWS.CLI),  wk:wkR(ROWS.CLI),  spark:sparkR(ROWS.CLI),
-               variazioni:    {today:todayR(ROWS.CLI_VAR),  wk:wkR(ROWS.CLI_VAR),  spark:sparkR(ROWS.CLI_VAR)},
-               cancellazioni: {today:todayR(ROWS.CLI_CANC), wk:wkR(ROWS.CLI_CANC), spark:sparkR(ROWS.CLI_CANC)}},
-    lhl:      {today:todayR(ROWS.LHL),  wk:wkR(ROWS.LHL),  spark:sparkR(ROWS.LHL),
-               variazioni: {today:todayR(ROWS.LHL_VAR),    wk:wkR(ROWS.LHL_VAR),    spark:sparkR(ROWS.LHL_VAR)},
-               noshow:     {today:todayR(ROWS.LHL_NOSHOW), wk:wkR(ROWS.LHL_NOSHOW), spark:sparkR(ROWS.LHL_NOSHOW)},
-               extra:      {today:todayR(ROWS.LHL_EXTRA),  wk:wkR(ROWS.LHL_EXTRA),  spark:sparkR(ROWS.LHL_EXTRA)}},
-    amazon:   {today:todayR(ROWS.AMZ),  wk:wkR(ROWS.AMZ),  spark:sparkR(ROWS.AMZ),
-               noshow:        {today:todayR(ROWS.AMZ_NOSHOW), wk:wkR(ROWS.AMZ_NOSHOW), spark:sparkR(ROWS.AMZ_NOSHOW)},
-               cancellazioni: {today:todayR(ROWS.AMZ_CANC),   wk:wkR(ROWS.AMZ_CANC),   spark:sparkR(ROWS.AMZ_CANC)},
-               extra:         {today:todayR(ROWS.AMZ_EXTRA),  wk:wkR(ROWS.AMZ_EXTRA),  spark:sparkR(ROWS.AMZ_EXTRA)}},
-    reteBacino:{today:todayR(ROWS.RETE), wk:wkR(ROWS.RETE), spark:sparkR(ROWS.RETE),
-               cancellazioni: {today:todayR(ROWS.RETE_CANC), wk:wkR(ROWS.RETE_CANC), spark:sparkR(ROWS.RETE_CANC)}},
-    sengi:    {today:todayR(ROWS.SENGI), wk:wkR(ROWS.SENGI), spark:sparkR(ROWS.SENGI),
-               variazioni:    {today:todayR(ROWS.SENGI_VAR),  wk:wkR(ROWS.SENGI_VAR),  spark:sparkR(ROWS.SENGI_VAR)},
-               cancellazioni: {today:todayR(ROWS.SENGI_CANC), wk:wkR(ROWS.SENGI_CANC), spark:sparkR(ROWS.SENGI_CANC)}}
+    aggiornamento:agg, date:dates,
+    linee:        {today:t(ROWS.LINEE),        wk:w(ROWS.LINEE),        spark:s(ROWS.LINEE)},
+    cancellazioni:{today:t(ROWS.CANCELLAZIONI), wk:w(ROWS.CANCELLAZIONI), spark:s(ROWS.CANCELLAZIONI)},
+    variazioni:   {today:t(ROWS.VARIAZIONI),    wk:w(ROWS.VARIAZIONI),    spark:s(ROWS.VARIAZIONI)},
+    extra:        {today:t(ROWS.EXTRA),         wk:w(ROWS.EXTRA),         spark:s(ROWS.EXTRA)},
+    amRitardi:    {today:t(ROWS.AM_RITARDI),    wk:w(ROWS.AM_RITARDI),    spark:s(ROWS.AM_RITARDI)},
+    guasti:       {today:t(ROWS.GUASTI),        wk:w(ROWS.GUASTI),        spark:s(ROWS.GUASTI)},
+    giacenza:     {today:t(ROWS.GIACENZA),      wk:w(ROWS.GIACENZA),      spark:s(ROWS.GIACENZA)},
+    noshow:       {today:t(ROWS.NOSHOW),        wk:w(ROWS.NOSHOW),        spark:s(ROWS.NOSHOW)},
+    ritArrGiust:  {today:t(ROWS.RIT_ARR),       wk:w(ROWS.RIT_ARR),       spark:s(ROWS.RIT_ARR)},
+    ritPercGiust: {today:t(ROWS.RIT_PERC),      wk:w(ROWS.RIT_PERC),      spark:s(ROWS.RIT_PERC)},
+    cli:      {today:t(ROWS.CLI),  wk:w(ROWS.CLI),  spark:s(ROWS.CLI),
+               variazioni:   {today:t(ROWS.CLI_VAR), wk:w(ROWS.CLI_VAR), spark:s(ROWS.CLI_VAR)},
+               cancellazioni:{today:t(ROWS.CLI_CANC),wk:w(ROWS.CLI_CANC),spark:s(ROWS.CLI_CANC)}},
+    lhl:      {today:t(ROWS.LHL),  wk:w(ROWS.LHL),  spark:s(ROWS.LHL),
+               variazioni:{today:t(ROWS.LHL_VAR),   wk:w(ROWS.LHL_VAR),   spark:s(ROWS.LHL_VAR)},
+               noshow:    {today:t(ROWS.LHL_NOSHOW),wk:w(ROWS.LHL_NOSHOW),spark:s(ROWS.LHL_NOSHOW)},
+               extra:     {today:t(ROWS.LHL_EXTRA), wk:w(ROWS.LHL_EXTRA), spark:s(ROWS.LHL_EXTRA)}},
+    amazon:   {today:t(ROWS.AMZ),  wk:w(ROWS.AMZ),  spark:s(ROWS.AMZ),
+               noshow:       {today:t(ROWS.AMZ_NOSHOW),wk:w(ROWS.AMZ_NOSHOW),spark:s(ROWS.AMZ_NOSHOW)},
+               cancellazioni:{today:t(ROWS.AMZ_CANC),  wk:w(ROWS.AMZ_CANC),  spark:s(ROWS.AMZ_CANC)},
+               extra:        {today:t(ROWS.AMZ_EXTRA), wk:w(ROWS.AMZ_EXTRA), spark:s(ROWS.AMZ_EXTRA)}},
+    reteBacino:{today:t(ROWS.RETE),wk:w(ROWS.RETE),spark:s(ROWS.RETE),
+               cancellazioni:{today:t(ROWS.RETE_CANC),wk:w(ROWS.RETE_CANC),spark:s(ROWS.RETE_CANC)}},
+    sengi:    {today:t(ROWS.SENGI),wk:w(ROWS.SENGI),spark:s(ROWS.SENGI),
+               variazioni:   {today:t(ROWS.SENGI_VAR), wk:w(ROWS.SENGI_VAR), spark:s(ROWS.SENGI_VAR)},
+               cancellazioni:{today:t(ROWS.SENGI_CANC),wk:w(ROWS.SENGI_CANC),spark:s(ROWS.SENGI_CANC)}}
   };
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-function showError(msg) {
-  document.getElementById("loading").style.display="none";
-  document.getElementById("alert-bar").innerHTML="<div class=\"al r\"><span class=\"aldot\"></span>"+msg+"</div>";
+function showError(msg){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('alert-bar').innerHTML='<div class="al r"><span class="aldot"></span>'+msg+'</div>';
 }
 function fmt(v){
-  if(v===null||v===undefined) return "-";
-  var n=Number(v); if(isNaN(n)) return "-";
-  return n.toLocaleString("it-IT");
+  if(v===null||v===undefined) return '-';
+  var n=Number(v); if(isNaN(n)) return '-';
+  return n.toLocaleString('it-IT');
 }
 function fmtPct(v){
-  if(v===null||v===undefined) return "-";
-  var n=Number(v); if(isNaN(n)) return "-";
+  if(v===null||v===undefined) return '-';
+  var n=Number(v); if(isNaN(n)) return '-';
   if(n>0&&n<=1) n=n*100;
-  return n.toFixed(1)+"%";
+  return n.toFixed(1)+'%';
 }
 function safe(obj,field,def){
   if(!obj) return def;
   return (obj[field]!==undefined&&obj[field]!==null)?obj[field]:def;
 }
 function sparkHTML(vals,dates,clr,isPct){
-  if(!vals||!vals.length) return "";
+  if(!vals||!vals.length) return '';
   var max=0.001;
   for(var i=0;i<vals.length;i++){if((vals[i]||0)>max)max=vals[i];}
-  var html="<div style=\"display:flex;gap:2px;align-items:flex-end;margin-top:10px;\">";
+  var html='<div style="display:flex;gap:2px;align-items:flex-end;margin-top:10px;">';
   for(var i=0;i<vals.length;i++){
     var t=(i===0),v=vals[i]||0;
     var h=Math.max(Math.round(v/max*28),2);
     var op=t?1:Math.max(0.35,0.85-i*0.1);
-    var dl=(dates&&dates[i])?dates[i]:"";
-    var vl=v===0?"-":(isPct?fmtPct(v):(v>=1000?(v/1000).toFixed(1)+"k":String(Math.round(v))));
-    html+="<div style=\"flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;\">";
-    html+="<div style=\"font-family:var(--mono);font-size:8px;color:"+(t?clr:"var(--t3)")+";font-weight:"+(t?"600":"400")+";min-height:11px;line-height:11px;\">"+vl+"</div>";
-    html+="<div style=\"width:100%;display:flex;align-items:flex-end;height:28px;\">";
-    html+="<div style=\"width:100%;height:"+h+"px;background:"+clr+";opacity:"+op+";border-radius:1px 1px 0 0;"+(t?"outline:2px solid var(--blue);outline-offset:1px;":"")+"\">&nbsp;</div>";
-    html+="</div>";
-    html+="<div style=\"font-family:var(--mono);font-size:7px;color:"+(t?"var(--blue)":"var(--t3)")+";font-weight:"+(t?"600":"400")+";margin-top:2px;\">"+dl+"</div>";
-    html+="</div>";
+    var dl=(dates&&dates[i])?dates[i]:'';
+    var vl=v===0?'-':(isPct?fmtPct(v):(v>=1000?(v/1000).toFixed(1)+'k':String(Math.round(v))));
+    html+='<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;">';
+    html+='<div style="font-family:var(--mono);font-size:8px;color:'+(t?clr:'var(--t3)')+';font-weight:'+(t?'600':'400')+';min-height:11px;line-height:11px;">'+vl+'</div>';
+    html+='<div style="width:100%;display:flex;align-items:flex-end;height:28px;">';
+    html+='<div style="width:100%;height:'+h+'px;background:'+clr+';opacity:'+op+';border-radius:1px 1px 0 0;'+(t?'outline:2px solid var(--blue);outline-offset:1px;':'')+'"></div>';
+    html+='</div>';
+    html+='<div style="font-family:var(--mono);font-size:7px;color:'+(t?'var(--blue)':'var(--t3)')+';font-weight:'+(t?'600':'400')+';margin-top:2px;">'+dl+'</div>';
+    html+='</div>';
   }
-  return html+"</div>";
+  return html+'</div>';
 }
 function kpiCard(accent,tag,tagCls,lbl,val,valColor,sub,pill,pillCls,sparkVals,dates,sparkClr,isPct){
-  var html="<div class=\"kpi\">";
-  html+="<div class=\"kpi-accent\" style=\"background:"+accent+"\"></div>";
-  html+="<div class=\"kpi-tag "+tagCls+"\">"+tag+"</div>";
-  html+="<div class=\"kpi-lbl\">"+lbl+"</div>";
-  html+="<div class=\"kpi-val\" style=\"color:"+valColor+"\">"+((isPct)?fmtPct(val):fmt(val))+"</div>";
-  html+="<div class=\"kpi-sub\">"+sub+"</div>";
+  var html='<div class="kpi">';
+  html+='<div class="kpi-accent" style="background:'+accent+'"></div>';
+  html+='<div class="kpi-tag '+tagCls+'">'+tag+'</div>';
+  html+='<div class="kpi-lbl">'+lbl+'</div>';
+  html+='<div class="kpi-val" style="color:'+valColor+'">'+(isPct?fmtPct(val):fmt(val))+'</div>';
+  html+='<div class="kpi-sub">'+sub+'</div>';
   if(sparkVals&&sparkVals.length) html+=sparkHTML(sparkVals,dates,sparkClr,isPct||false);
-  if(pill) html+="<div class=\"wk-pill "+(pillCls||"")+"\">"+pill+"</div>";
-  return html+"</div>";
+  if(pill) html+='<div class="wk-pill '+(pillCls||'')+'">'+pill+'</div>';
+  return html+'</div>';
 }
 function buildNetRow(net,label,subItems){
   if(!net) net={};
-  var spark=net.spark||[],cells="";
-  for(var i=0;i<spark.length;i++) cells+="<td"+(i===0?" class=\"today-c\"":" ")+">"+fmt(spark[i])+"</td>";
-  if(!spark.length){for(var i=0;i<6;i++) cells+="<td>-</td>";}
-  var html="<tr><td>"+label+"</td>"+cells+"<td class=\"b\">"+fmt(net.wk||0)+"</td></tr>";
+  var spark=net.spark||[],cells='';
+  for(var i=0;i<spark.length;i++){
+    cells+='<td'+(i===0?' class="today-c"':'')+'>'+fmt(spark[i])+'</td>';
+  }
+  if(!spark.length){for(var i=0;i<6;i++) cells+='<td>-</td>';}
+  var html='<tr><td>'+label+'</td>'+cells+'<td class="b">'+fmt(net.wk||0)+'</td></tr>';
   for(var s=0;s<subItems.length;s++){
-    var sr=subItems[s],sn=(sr&&sr.data)?sr.data:{},ss=sn.spark||[],sc="";
-    for(var i=0;i<ss.length;i++) sc+="<td"+(i===0?" class=\"today-c\"":" ")+" style=\"font-size:10px;color:var(--t2)\">"+fmt(ss[i])+"</td>";
-    if(!ss.length){for(var i=0;i<6;i++) sc+="<td style=\"font-size:10px;color:var(--t3)\">-</td>";}
-    html+="<tr style=\"background:var(--bg)\"><td style=\"font-size:10px;color:var(--t3);padding-left:12px\">&#8627; "+(sr.label||"")+"</td>"+sc+"<td class=\""+(sr.cls||"")+"" style=\"font-size:10px\">"+fmt(sn.wk||0)+"</td></tr>";
+    var sr=subItems[s];
+    var sn=(sr&&sr.data)?sr.data:{};
+    var ss=sn.spark||[];
+    var sc='';
+    for(var i=0;i<ss.length;i++){
+      sc+='<td'+(i===0?' class="today-c"':'')+' style="font-size:10px;color:var(--t2)">'+fmt(ss[i])+'</td>';
+    }
+    if(!ss.length){for(var i=0;i<6;i++) sc+='<td style="font-size:10px;color:var(--t3)">-</td>';}
+    html+='<tr style="background:var(--bg)"><td style="font-size:10px;color:var(--t3);padding-left:12px">&#8627; '+(sr.label||'')+'</td>'+sc+'<td class="'+(sr.cls||'')+'" style="font-size:10px">'+fmt(sn.wk||0)+'</td></tr>';
   }
   return html;
 }
@@ -371,98 +337,91 @@ function sub(net,key){
   if(!net||!net[key]) return {spark:[],wk:0,today:0};
   return net[key];
 }
-
-// ============================================================
-// RENDER
-// ============================================================
 function renderDashboard(d){
   var dates=d.date||[];
-  var linee=safe(d.linee,"today",0), lineeWk=safe(d.linee,"wk",0), lineeSp=safe(d.linee,"spark",[]);
-  var canc=safe(d.cancellazioni,"today",0), cancWk=safe(d.cancellazioni,"wk",0), cancSp=safe(d.cancellazioni,"spark",[]);
-  var var_=safe(d.variazioni,"today",0), varWk=safe(d.variazioni,"wk",0), varSp=safe(d.variazioni,"spark",[]);
-  var extra=safe(d.extra,"today",0), extraWk=safe(d.extra,"wk",0), extraSp=safe(d.extra,"spark",[]);
-  var amRit=safe(d.amRitardi,"today",0), amRitWk=safe(d.amRitardi,"wk",0), amRitSp=safe(d.amRitardi,"spark",[]);
-  var guasti=safe(d.guasti,"today",0), guastiWk=safe(d.guasti,"wk",0), guastiSp=safe(d.guasti,"spark",[]);
-  var giac=safe(d.giacenza,"today",0), giacWk=safe(d.giacenza,"wk",0), giacSp=safe(d.giacenza,"spark",[]);
-  var noshow=safe(d.noshow,"today",0), noshowWk=safe(d.noshow,"wk",0), noshowSp=safe(d.noshow,"spark",[]);
-  var ritArr=safe(d.ritArrGiust,"today",0), ritArrSp=safe(d.ritArrGiust,"spark",[]);
-  var ritPerc=safe(d.ritPercGiust,"today",0), ritPercSp=safe(d.ritPercGiust,"spark",[]);
-  var cancRate=(linee>0)?(canc/linee*100).toFixed(1):"0.0";
+  var linee=safe(d.linee,'today',0),lineeWk=safe(d.linee,'wk',0),lineeSp=safe(d.linee,'spark',[]);
+  var canc=safe(d.cancellazioni,'today',0),cancWk=safe(d.cancellazioni,'wk',0),cancSp=safe(d.cancellazioni,'spark',[]);
+  var var_=safe(d.variazioni,'today',0),varWk=safe(d.variazioni,'wk',0),varSp=safe(d.variazioni,'spark',[]);
+  var extra=safe(d.extra,'today',0),extraWk=safe(d.extra,'wk',0),extraSp=safe(d.extra,'spark',[]);
+  var amRit=safe(d.amRitardi,'today',0),amRitWk=safe(d.amRitardi,'wk',0),amRitSp=safe(d.amRitardi,'spark',[]);
+  var guasti=safe(d.guasti,'today',0),guastiWk=safe(d.guasti,'wk',0),guastiSp=safe(d.guasti,'spark',[]);
+  var giac=safe(d.giacenza,'today',0),giacWk=safe(d.giacenza,'wk',0),giacSp=safe(d.giacenza,'spark',[]);
+  var noshow=safe(d.noshow,'today',0),noshowWk=safe(d.noshow,'wk',0),noshowSp=safe(d.noshow,'spark',[]);
+  var ritArr=safe(d.ritArrGiust,'today',0),ritArrSp=safe(d.ritArrGiust,'spark',[]);
+  var ritPerc=safe(d.ritPercGiust,'today',0),ritPercSp=safe(d.ritPercGiust,'spark',[]);
+  var cancRate=(linee>0)?(canc/linee*100).toFixed(1):'0.0';
 
-  document.getElementById("alert-bar").innerHTML=
-    "<div class=\"al "+(amRit>0?"r":"g")+"\"><span class=\"aldot\"></span>AM Ritardi: "+fmt(amRit)+"</div>"+
-    "<div class=\"al "+(cancRate>5?"a":"g")+"\"><span class=\"aldot\"></span>Cancellazioni: "+fmt(canc)+" ("+cancRate+"%)</div>"+
-    "<div class=\"al "+(giac>0?"a":"g")+"\">Giacenza: "+fmt(giac)+"</div>"+
-    "<div class=\"al "+(guasti>0?"r":"g")+"\">Guasti: "+fmt(guasti)+"</div>"+
-    "<div class=\"al n\">LINEE: "+fmt(linee)+" &middot; CLI: "+fmt(safe(d.cli,"today",0))+" &middot; AMZ: "+fmt(safe(d.amazon,"today",0))+"</div>"+
-    "<div class=\"al-end\">Aggiornato: <strong style=\"color:var(--text);margin-left:4px\">"+d.aggiornamento+"</strong></div>";
+  document.getElementById('alert-bar').innerHTML=
+    '<div class="al '+(amRit>0?'r':'g')+'"><span class="aldot"></span>AM Ritardi: '+fmt(amRit)+'</div>'+
+    '<div class="al '+(cancRate>5?'a':'g')+'"><span class="aldot"></span>Cancellazioni: '+fmt(canc)+' ('+cancRate+'%)</div>'+
+    '<div class="al '+(giac>0?'a':'g')+'">Giacenza: '+fmt(giac)+'</div>'+
+    '<div class="al '+(guasti>0?'r':'g')+'">Guasti: '+fmt(guasti)+'</div>'+
+    '<div class="al n">LINEE: '+fmt(linee)+' &middot; CLI: '+fmt(safe(d.cli,'today',0))+' &middot; AMZ: '+fmt(safe(d.amazon,'today',0))+'</div>'+
+    '<div class="al-end">Aggiornato: <strong style="color:var(--text);margin-left:4px">'+d.aggiornamento+'</strong></div>';
 
-  document.getElementById("kpi-linee").innerHTML=
-    kpiCard("var(--blue)","LINEE","linee","Archi Totali",linee,"var(--blue)","oggi &middot; WK: "+fmt(lineeWk),"WK: "+fmt(lineeWk),"blue",lineeSp,dates,"var(--blue)")+
-    kpiCard("var(--red)","LINEE","linee","Cancellazioni",canc,"var(--red)","oggi &middot; "+cancRate+"% &middot; WK: "+fmt(cancWk),"WK: "+fmt(cancWk),"red",cancSp,dates,"var(--red)")+
-    kpiCard("var(--orange)","LINEE","linee","Variazioni",var_,"var(--orange)","oggi &middot; WK: "+fmt(varWk),"WK: "+fmt(varWk),"",varSp,dates,"var(--orange)")+
-    kpiCard("var(--green)","LINEE","linee","Extra (Straordinari)",extra,"var(--green)","oggi &middot; WK: "+fmt(extraWk),"WK: "+fmt(extraWk),"green",extraSp,dates,"var(--green)");
+  document.getElementById('kpi-linee').innerHTML=
+    kpiCard('var(--blue)','LINEE','linee','Archi Totali',linee,'var(--blue)','oggi &middot; WK: '+fmt(lineeWk),'WK: '+fmt(lineeWk),'blue',lineeSp,dates,'var(--blue)')+
+    kpiCard('var(--red)','LINEE','linee','Cancellazioni',canc,'var(--red)','oggi &middot; '+cancRate+'% &middot; WK: '+fmt(cancWk),'WK: '+fmt(cancWk),'red',cancSp,dates,'var(--red)')+
+    kpiCard('var(--orange)','LINEE','linee','Variazioni',var_,'var(--orange)','oggi &middot; WK: '+fmt(varWk),'WK: '+fmt(varWk),'',varSp,dates,'var(--orange)')+
+    kpiCard('var(--green)','LINEE','linee','Extra (Straordinari)',extra,'var(--green)','oggi &middot; WK: '+fmt(extraWk),'WK: '+fmt(extraWk),'green',extraSp,dates,'var(--green)');
 
-  document.getElementById("kpi-agg").innerHTML=
-    kpiCard("var(--red)","AGGREGATO","agg","AM Ritardi",amRit,amRit>0?"var(--red)":"var(--green)","oggi &middot; WK: "+fmt(amRitWk),amRit===0?"Nessun ritardo":"WK: "+fmt(amRitWk),amRit===0?"green":"red",amRitSp,dates,"var(--red)")+
-    kpiCard("var(--orange)","AGGREGATO","agg","Guasti",guasti,guasti>0?"var(--orange)":"var(--green)","oggi &middot; WK: "+fmt(guastiWk),guasti===0?"Nessun guasto":"WK: "+fmt(guastiWk),guasti===0?"green":"",guastiSp,dates,"var(--orange)")+
-    kpiCard("var(--amber)","AGGREGATO","agg","Giacenza",giac,giac>0?"var(--orange)":"var(--green)","oggi &middot; WK: "+fmt(giacWk),giac===0?"Giacenza azzerata":fmt(giac)+" colli",giac===0?"green":"",giacSp,dates,"var(--amber)")+
-    kpiCard("var(--t3)","LINEE","linee","No Show",noshow,noshow>0?"var(--orange)":"var(--green)","oggi &middot; WK: "+fmt(noshowWk),"WK: "+fmt(noshowWk),"",noshowSp,dates,"var(--orange)");
+  document.getElementById('kpi-agg').innerHTML=
+    kpiCard('var(--red)','AGGREGATO','agg','AM Ritardi',amRit,amRit>0?'var(--red)':'var(--green)','oggi &middot; WK: '+fmt(amRitWk),amRit===0?'Nessun ritardo':'WK: '+fmt(amRitWk),amRit===0?'green':'red',amRitSp,dates,'var(--red)')+
+    kpiCard('var(--orange)','AGGREGATO','agg','Guasti',guasti,guasti>0?'var(--orange)':'var(--green)','oggi &middot; WK: '+fmt(guastiWk),guasti===0?'Nessun guasto':'WK: '+fmt(guastiWk),guasti===0?'green':'',guastiSp,dates,'var(--orange)')+
+    kpiCard('var(--amber)','AGGREGATO','agg','Giacenza',giac,giac>0?'var(--orange)':'var(--green)','oggi &middot; WK: '+fmt(giacWk),giac===0?'Giacenza azzerata':fmt(giac)+' colli',giac===0?'green':'',giacSp,dates,'var(--amber)')+
+    kpiCard('var(--t3)','LINEE','linee','No Show',noshow,noshow>0?'var(--orange)':'var(--green)','oggi &middot; WK: '+fmt(noshowWk),'WK: '+fmt(noshowWk),'',noshowSp,dates,'var(--orange)');
 
-  document.getElementById("kpi-perf").innerHTML=
-    kpiCard("var(--green)","PERFORMANCE","perf","Ritardo Arrivo Giust.",ritArr,"var(--green)","oggi &middot; riga 45","","",ritArrSp,dates,"var(--green)",true)+
-    kpiCard("var(--green)","PERFORMANCE","perf","Ritardo Perc. Giust.",ritPerc,"var(--green)","oggi &middot; riga 58","","",ritPercSp,dates,"var(--green)",true);
+  document.getElementById('kpi-perf').innerHTML=
+    kpiCard('var(--green)','PERFORMANCE','perf','Ritardo Arrivo Giust.',ritArr,'var(--green)','oggi &middot; riga 45','','',ritArrSp,dates,'var(--green)',true)+
+    kpiCard('var(--green)','PERFORMANCE','perf','Ritardo Perc. Giust.',ritPerc,'var(--green)','oggi &middot; riga 58','','',ritPercSp,dates,'var(--green)',true);
 
-  var dateHdrs="";
-  for(var i=0;i<dates.length;i++) dateHdrs+="<th"+(i===0?" class=\"today-h\"":" ")+">"+dates[i]+(i===0?" &#9664;":"")+"</th>";
-  var lineeCells="";
-  for(var i=0;i<lineeSp.length;i++) lineeCells+="<td"+(i===0?" class=\"today-c b\"":" ")+" style=\"font-size:13px;font-weight:700\">"+fmt(lineeSp[i])+"</td>";
+  var dateHdrs='';
+  for(var i=0;i<dates.length;i++) dateHdrs+='<th'+(i===0?' class="today-h"':'')+'>'+dates[i]+(i===0?' &#9664;':'')+'</th>';
+  var lineeCells='';
+  for(var i=0;i<lineeSp.length;i++) lineeCells+='<td'+(i===0?' class="today-c b"':'')+' style="font-size:13px;font-weight:700">'+fmt(lineeSp[i])+'</td>';
 
-  document.getElementById("network-section").innerHTML=
-    "<div class=\"card\"><div class=\"card-title\">CLI / LHL / Amazon / Rete Bacino / SENGI</div>"+
-    "<table class=\"nt\"><thead><tr><th>Network</th>"+dateHdrs+"<th class=\"today-h\">WK</th></tr></thead><tbody>"+
-    buildNetRow(d.cli,"CLI",[{label:"Variazioni",data:sub(d.cli,"variazioni"),cls:"a"},{label:"Cancellazioni",data:sub(d.cli,"cancellazioni"),cls:"r"}])+
-    buildNetRow(d.lhl,"LHL (Linehaul)",[{label:"Variazioni",data:sub(d.lhl,"variazioni"),cls:"a"},{label:"Extra",data:sub(d.lhl,"extra"),cls:"g"}])+
-    buildNetRow(d.amazon,"Amazon",[{label:"Cancellazioni",data:sub(d.amazon,"cancellazioni"),cls:"r"},{label:"No Show",data:sub(d.amazon,"noshow"),cls:"a"},{label:"Extra",data:sub(d.amazon,"extra"),cls:"g"}])+
-    buildNetRow(d.reteBacino,"Rete Bacino",[{label:"Cancellazioni",data:sub(d.reteBacino,"cancellazioni"),cls:"r"}])+
-    buildNetRow(d.sengi,"SENGI",[{label:"Variazioni",data:sub(d.sengi,"variazioni"),cls:"a"},{label:"Cancellazioni",data:sub(d.sengi,"cancellazioni"),cls:"r"}])+
-    "<tr class=\"total-row\"><td style=\"color:var(--blue)\">LINEE (aggregato)</td>"+lineeCells+"<td class=\"b\" style=\"font-size:14px\">"+fmt(lineeWk)+"</td></tr>"+
-    "</tbody></table>"+
-    "<div class=\"info-box blue\" style=\"display:flex;justify-content:space-between;\"><span>LINEE = aggregato foglio DAY</span><strong>Oggi: "+fmt(linee)+" &middot; WK: "+fmt(lineeWk)+"</strong></div></div>";
+  document.getElementById('network-section').innerHTML=
+    '<div class="card"><div class="card-title">CLI / LHL / Amazon / Rete Bacino / SENGI</div>'+
+    '<table class="nt"><thead><tr><th>Network</th>'+dateHdrs+'<th class="today-h">WK</th></tr></thead><tbody>'+
+    buildNetRow(d.cli,'CLI',[{label:'Variazioni',data:sub(d.cli,'variazioni'),cls:'a'},{label:'Cancellazioni',data:sub(d.cli,'cancellazioni'),cls:'r'}])+
+    buildNetRow(d.lhl,'LHL (Linehaul)',[{label:'Variazioni',data:sub(d.lhl,'variazioni'),cls:'a'},{label:'Extra',data:sub(d.lhl,'extra'),cls:'g'}])+
+    buildNetRow(d.amazon,'Amazon',[{label:'Cancellazioni',data:sub(d.amazon,'cancellazioni'),cls:'r'},{label:'No Show',data:sub(d.amazon,'noshow'),cls:'a'},{label:'Extra',data:sub(d.amazon,'extra'),cls:'g'}])+
+    buildNetRow(d.reteBacino,'Rete Bacino',[{label:'Cancellazioni',data:sub(d.reteBacino,'cancellazioni'),cls:'r'}])+
+    buildNetRow(d.sengi,'SENGI',[{label:'Variazioni',data:sub(d.sengi,'variazioni'),cls:'a'},{label:'Cancellazioni',data:sub(d.sengi,'cancellazioni'),cls:'r'}])+
+    '<tr class="total-row"><td style="color:var(--blue)">LINEE (aggregato)</td>'+lineeCells+'<td class="b" style="font-size:14px">'+fmt(lineeWk)+'</td></tr>'+
+    '</tbody></table>'+
+    '<div class="info-box blue" style="display:flex;justify-content:space-between;"><span>LINEE = aggregato foglio DAY</span><strong>Oggi: '+fmt(linee)+' &middot; WK: '+fmt(lineeWk)+'</strong></div></div>';
 
-  document.getElementById("kpi-live").innerHTML=
-    kpiCard("var(--blue)","LINEE","linee","Archi WK",lineeWk,"var(--blue)","oggi: "+fmt(linee),"","",null,null,"")+
-    kpiCard("var(--red)","LINEE","linee","Cancellazioni WK",cancWk,"var(--red)","oggi: "+fmt(canc),"","",null,null,"")+
-    kpiCard("var(--red)","AGGREGATO","agg","AM Ritardi oggi",amRit,amRit>0?"var(--red)":"var(--green)","WK: "+fmt(amRitWk),"","",null,null,"")+
-    kpiCard("var(--green)","AGGREGATO","agg","Giacenza + Guasti",giac+guasti,(giac+guasti)>0?"var(--orange)":"var(--green)","Giacenza: "+fmt(giac)+" &middot; Guasti: "+fmt(guasti),"","",null,null,"");
+  document.getElementById('kpi-live').innerHTML=
+    kpiCard('var(--blue)','LINEE','linee','Archi WK',lineeWk,'var(--blue)','oggi: '+fmt(linee),'','',null,null,'')+
+    kpiCard('var(--red)','LINEE','linee','Cancellazioni WK',cancWk,'var(--red)','oggi: '+fmt(canc),'','',null,null,'')+
+    kpiCard('var(--red)','AGGREGATO','agg','AM Ritardi oggi',amRit,amRit>0?'var(--red)':'var(--green)','WK: '+fmt(amRitWk),'','',null,null,'')+
+    kpiCard('var(--green)','AGGREGATO','agg','Giacenza + Guasti',giac+guasti,(giac+guasti)>0?'var(--orange)':'var(--green)','Giacenza: '+fmt(giac)+' &middot; Guasti: '+fmt(guasti),'','',null,null,'');
 
-  document.getElementById("live-table").innerHTML=
-    "<div class=\"card\"><div class=\"card-title\">KPI settimana corrente</div>"+
-    "<table class=\"nt\"><thead><tr><th>KPI</th>"+dateHdrs+"<th class=\"today-h\">WK</th></tr></thead><tbody>"+
-    buildNetRow({spark:lineeSp,wk:lineeWk},"LINEE (archi)",[])+
-    buildNetRow({spark:cancSp,wk:cancWk},"Cancellazioni",[])+
-    buildNetRow({spark:varSp,wk:varWk},"Variazioni",[])+
-    buildNetRow({spark:extraSp,wk:extraWk},"Extra",[])+
-    buildNetRow({spark:amRitSp,wk:amRitWk},"AM Ritardi",[])+
-    buildNetRow({spark:guastiSp,wk:guastiWk},"Guasti",[])+
-    buildNetRow({spark:giacSp,wk:giacWk},"Giacenza",[])+
-    buildNetRow({spark:noshowSp,wk:noshowWk},"No Show",[])+
-    buildNetRow({spark:safe(d.cli,"spark",[]),wk:safe(d.cli,"wk",0)},"CLI",[])+
-    buildNetRow({spark:safe(d.lhl,"spark",[]),wk:safe(d.lhl,"wk",0)},"LHL",[])+
-    buildNetRow({spark:safe(d.amazon,"spark",[]),wk:safe(d.amazon,"wk",0)},"Amazon",[])+
-    "</tbody></table></div>";
+  document.getElementById('live-table').innerHTML=
+    '<div class="card"><div class="card-title">KPI settimana corrente</div>'+
+    '<table class="nt"><thead><tr><th>KPI</th>'+dateHdrs+'<th class="today-h">WK</th></tr></thead><tbody>'+
+    buildNetRow({spark:lineeSp,wk:lineeWk},'LINEE (archi)',[])+
+    buildNetRow({spark:cancSp,wk:cancWk},'Cancellazioni',[])+
+    buildNetRow({spark:varSp,wk:varWk},'Variazioni',[])+
+    buildNetRow({spark:extraSp,wk:extraWk},'Extra',[])+
+    buildNetRow({spark:amRitSp,wk:amRitWk},'AM Ritardi',[])+
+    buildNetRow({spark:guastiSp,wk:guastiWk},'Guasti',[])+
+    buildNetRow({spark:giacSp,wk:giacWk},'Giacenza',[])+
+    buildNetRow({spark:noshowSp,wk:noshowWk},'No Show',[])+
+    buildNetRow({spark:safe(d.cli,'spark',[]),wk:safe(d.cli,'wk',0)},'CLI',[])+
+    buildNetRow({spark:safe(d.lhl,'spark',[]),wk:safe(d.lhl,'wk',0)},'LHL',[])+
+    buildNetRow({spark:safe(d.amazon,'spark',[]),wk:safe(d.amazon,'wk',0)},'Amazon',[])+
+    '</tbody></table></div>';
 }
-
 function sv(v,btn){
-  document.querySelectorAll(".view").forEach(function(e){e.classList.remove("active");});
-  document.querySelectorAll(".tab").forEach(function(e){e.classList.remove("active");});
-  document.getElementById("view-"+v).classList.add("active");
-  btn.classList.add("active");
+  document.querySelectorAll('.view').forEach(function(e){e.classList.remove('active');});
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active');});
+  document.getElementById('view-'+v).classList.add('active');
+  btn.classList.add('active');
 }
-
-// Aggiorna ogni 5 minuti
 loadData();
-setInterval(loadData, 5*60*1000);
+setInterval(loadData,5*60*1000);
 </script>
 </body>
 </html>
